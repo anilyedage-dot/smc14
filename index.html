@@ -1,65 +1,253 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="./resources/ol.css">
-        <link rel="stylesheet" href="resources/fontawesome-all.min.css">
-        <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
-        <link rel="stylesheet" href="./resources/qgis2web.css">
-        <style>
-        html, body {
-            background-color: #ffffff;
-        }
-        .ol-control > * {
-            background-color: #f8f8f8!important;
-            color: #444444!important;
-            border-radius: 0px;
-        }
-        .ol-attribution a, .gcd-gl-input::placeholder, .search-layer-input-search::placeholder {
-            color: #444444!important;
-        }
-        .search-layer-input-search {
-            background-color: #f8f8f8!important;
-        }
-        .ol-control > *:focus, .ol-control >*:hover {
-            background-color: rgba(248, 248, 248, 0.7)!important;
-        } 
-        .ol-control {
-            background-color: rgba(255,255,255,.4) !important;
-            padding: 2px !important;
-        } 
-        </style>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width,initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <title>Solapur MNC Dashboard</title>
 
-        <style>
-        #map {
-            width: 1066px;
-            height: 540px;
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./resources/ol.css">
+    <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+    <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+    <link rel="stylesheet" href="./resources/qgis2web.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        </style>
-        <title></title>
-    </head>
-    <body>
-        <div id="map">
-            <div id="popup" class="ol-popup">
-                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-content"></div>
-            </div>
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+        }
+
+        /* Fullscreen Map */
+        #map {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Header Dashboard Bar */
+        .dashboard-header {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 10px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: 0.5px;
+        }
+
+        .dashboard-header .badge {
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* North Arrow Widget */
+        .north-arrow-widget {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .north-arrow-icon {
+            width: 24px;
+            height: 24px;
+            fill: #dc2626;
+        }
+
+        /* Customizing OpenLayers Controls */
+        .ol-control {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(4px);
+            border-radius: 10px !important;
+            padding: 4px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .ol-control > * {
+            background-color: transparent !important;
+            color: #1e293b !important;
+            border-radius: 6px !important;
+            font-weight: bold;
+        }
+
+        .ol-control > *:focus, .ol-control > *:hover {
+            background-color: rgba(226, 232, 240, 0.8) !important;
+        }
+
+        /* Scalebar Position Styling */
+        .ol-scale-line {
+            bottom: 16px !important;
+            left: 16px !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-radius: 8px !important;
+            padding: 4px 8px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .ol-scale-line-inner {
+            border: 2px solid #1e293b !important;
+            border-top: none !important;
+            color: #1e293b !important;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        /* Popup Styling */
+        .ol-popup {
+            background: white;
+            padding: 14px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            border: 1px solid #e2e8f0;
+            min-width: 200px;
+        }
+
+        /* Mobile Viewport Adjustments */
+        @media (max-width: 600px) {
+            .dashboard-header {
+                top: 8px;
+                left: 8px;
+                padding: 8px 12px;
+            }
+            .dashboard-header h1 {
+                font-size: 0.95rem;
+            }
+            .north-arrow-widget {
+                top: 8px;
+                right: 8px;
+                width: 38px;
+                height: 38px;
+            }
+            .north-arrow-icon {
+                width: 20px;
+                height: 20px;
+            }
+            .ol-zoom {
+                top: 60px !important;
+                left: 8px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Panel -->
+    <div class="dashboard-header">
+        <h1>Solapur MNC</h1>
+        <span class="badge">GIS Portal</span>
+    </div>
+
+    <!-- North Arrow Indicator -->
+    <div class="north-arrow-widget" title="North Arrow">
+        <svg class="north-arrow-icon" viewBox="0 0 24 24">
+            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+        </svg>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map">
+        <div id="popup" class="ol-popup">
+            <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+            <div id="popup-content"></div>
         </div>
-        <script src="resources/qgis2web_expressions.js"></script>
-        <script src="./resources/functions.js"></script>
-        <script src="./resources/ol.js"></script>
-        <script src="./resources/ol-layerswitcher.js"></script>
-        <script src="resources/photon-geocoder-autocomplete.min.js"></script>
-        <script src="resources/olms.js"></script>
-        <script src="layers/mnc2_0.js"></script><script src="layers/building_1.js"></script><script src="layers/landuse_2.js"></script><script src="layers/natural_3.js"></script><script src="layers/places_4.js"></script><script src="layers/pois_5.js"></script><script src="layers/proctected_area_6.js"></script><script src="layers/railway_7.js"></script><script src="layers/religues_places_8.js"></script><script src="layers/road_9.js"></script><script src="layers/water_10.js"></script>
-        <script src="styles/mnc2_0_style.js"></script><script src="styles/building_1_style.js"></script><script src="styles/landuse_2_style.js"></script><script src="styles/natural_3_style.js"></script><script src="styles/places_4_style.js"></script><script src="styles/pois_5_style.js"></script><script src="styles/proctected_area_6_style.js"></script><script src="styles/railway_7_style.js"></script><script src="styles/religues_places_8_style.js"></script><script src="styles/road_9_style.js"></script><script src="styles/water_10_style.js"></script>
-        <script src="./layers/layers.js" type="text/javascript"></script> 
-        <script src="./resources/Autolinker.min.js"></script>
-        <script src="./resources/qgis2web.js"></script>
-    </body>
+    </div>
+
+    <!-- Scripts -->
+    <script src="resources/qgis2web_expressions.js"></script>
+    <script src="./resources/functions.js"></script>
+    <script src="./resources/ol.js"></script>
+    <script src="./resources/ol-layerswitcher.js"></script>
+    <script src="resources/photon-geocoder-autocomplete.min.js"></script>
+    <script src="resources/olms.js"></script>
+    
+    <!-- Layer Data -->
+    <script src="layers/mnc2_0.js"></script>
+    <script src="layers/building_1.js"></script>
+    <script src="layers/landuse_2.js"></script>
+    <script src="layers/natural_3.js"></script>
+    <script src="layers/places_4.js"></script>
+    <script src="layers/pois_5.js"></script>
+    <script src="layers/proctected_area_6.js"></script>
+    <script src="layers/railway_7.js"></script>
+    <script src="layers/religues_places_8.js"></script>
+    <script src="layers/road_9.js"></script>
+    <script src="layers/water_10.js"></script>
+
+    <!-- Layer Styles -->
+    <script src="styles/mnc2_0_style.js"></script>
+    <script src="styles/building_1_style.js"></script>
+    <script src="styles/landuse_2_style.js"></script>
+    <script src="styles/natural_3_style.js"></script>
+    <script src="styles/places_4_style.js"></script>
+    <script src="styles/pois_5_style.js"></script>
+    <script src="styles/proctected_area_6_style.js"></script>
+    <script src="styles/railway_7_style.js"></script>
+    <script src="styles/religues_places_8_style.js"></script>
+    <script src="styles/road_9_style.js"></script>
+    <script src="styles/water_10_style.js"></script>
+
+    <script src="./layers/layers.js" type="text/javascript"></script> 
+    <script src="./resources/Autolinker.min.js"></script>
+    <script src="./resources/qgis2web.js"></script>
+
+    <!-- Scale Line Control Initialization -->
+    <script>
+        // Attach OpenLayers ScaleLine control automatically when map initializes
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof map !== 'undefined') {
+                var scaleLineControl = new ol.control.ScaleLine({
+                    units: 'metric'
+                });
+                map.addControl(scaleLineControl);
+            }
+        });
+    </script>
+</body>
 </html>
